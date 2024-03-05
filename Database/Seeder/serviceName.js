@@ -1,0 +1,453 @@
+const mongoose = require("mongoose");
+require("dotenv").config();
+
+const Service = require("../Models/service.model");
+const { connection } = require("../connection");
+const { IST } = require("../../Helpers/dateTime.helper");
+
+const data = [
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "FPL",
+    serviceName: "FREIGHT CHARGES",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "LCGR",
+    serviceName: "LOCAL TRANSPORTATION",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "COL",
+    serviceName: "CLEARING CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "CUSTOM",
+    serviceName: "CUSTOMS CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "CUSDU",
+    serviceName: "CUSTOMS DUTY",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "DEM",
+    serviceName: "DEMURRAGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "TOK",
+    serviceName: "TOLL FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "BORBAT",
+    serviceName: "BORDER CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "FRT11",
+    serviceName: "FREIGHT CHARGES LUMPSUM - ALL INCLUSIVE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "LDC",
+    serviceName: "LOCAL DELIVERY CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "LUF(0)",
+    serviceName: "LICENCE USAGE FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "DO",
+    serviceName: "DO FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "TRPT-INT11",
+    serviceCode: "DLYCHRG",
+    serviceName: "DELAY CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  // EXPSTD11
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "FPL",
+    serviceName: "FREIGHT CHARGES",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "LCGR",
+    serviceName: "LOCAL TRANSPORTATION",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "COL",
+    serviceName: "CLEARING CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "CUSTOM",
+    serviceName: "CUSTOMS CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "CUSDU",
+    serviceName: "CUSTOMS DUTY",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "DEM",
+    serviceName: "DEMURRAGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "TOK",
+    serviceName: "TOLL FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "BORBAT",
+    serviceName: "BORDER CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "FRT11",
+    serviceName: "FREIGHT CHARGES LUMPSUM - ALL INCLUSIVE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "LDC",
+    serviceName: "LOCAL DELIVERY CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "LUF(0)",
+    serviceName: "LICENCE USAGE FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "DO",
+    serviceName: "DO FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPSTD11",
+    serviceCode: "DLYCHRG",
+    serviceName: "DELAY CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  // EXPZERO11
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "FPL",
+    serviceName: "FREIGHT CHARGES",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "LCGR",
+    serviceName: "LOCAL TRANSPORTATION",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "COL",
+    serviceName: "CLEARING CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "CUSTOM",
+    serviceName: "CUSTOMS CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "CUSDU",
+    serviceName: "CUSTOMS DUTY",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "DEM",
+    serviceName: "DEMURRAGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "TOK",
+    serviceName: "TOLL FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "BORBAT",
+    serviceName: "BORDER CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "FRT11",
+    serviceName: "FREIGHT CHARGES LUMPSUM - ALL INCLUSIVE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "LDC",
+    serviceName: "LOCAL DELIVERY CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "LUF(0)",
+    serviceName: "LICENCE USAGE FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "DO",
+    serviceName: "DO FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPZERO11",
+    serviceCode: "DLYCHRG",
+    serviceName: "DELAY CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  // EXPREIM11
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "FPL",
+    serviceName: "FREIGHT CHARGES",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "LCGR",
+    serviceName: "LOCAL TRANSPORTATION",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "COL",
+    serviceName: "CLEARING CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "CUSTOM",
+    serviceName: "CUSTOMS CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "CUSDU",
+    serviceName: "CUSTOMS DUTY",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "DEM",
+    serviceName: "DEMURRAGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "TOK",
+    serviceName: "TOLL FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "BORBAT",
+    serviceName: "BORDER CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "FRT11",
+    serviceName: "FREIGHT CHARGES LUMPSUM - ALL INCLUSIVE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "LDC",
+    serviceName: "LOCAL DELIVERY CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "LUF(0)",
+    serviceName: "LICENCE USAGE FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "DO",
+    serviceName: "DO FEE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+  {
+    chargeCode: "EXPREIM11",
+    serviceCode: "DLYCHRG",
+    serviceName: "DELAY CHARGE",
+    serviceActive: true,
+    created_at: IST(),
+    updated_at: IST(),
+  },
+];
+
+const init = async (data) => {
+  try {
+    console.log("running seeder !");
+    connection();
+    Service.deleteMany({}, (error) => {
+      if (error) {
+        console.log(error);
+      }
+    });
+    console.log("adding seeder record/s !");
+    Service.insertMany(data, (error, docs) => {
+      if (error) console.log(error);
+      else console.log("DB seed complete");
+      process.exit();
+    });
+
+    console.log("running seeder !");
+  } catch (error) {
+    console.log("Error seeding DB :: ", error?.message);
+    process.exit();
+  }
+};
+
+init(data);
