@@ -43,10 +43,28 @@ const io = new Server(httpServer, {
   },
 });
 
-require("./Controllers/socket.controller")(io);
-
 //? routes
 require("./Routes")();
+
+global.socketCall = false;
+
+io.on("connection", (socket) => {
+  try {
+    socket.on("joinRoom", (room) => {
+      socket.join(Number(room));
+    });
+
+    socket.on("socketCallOff", (value) => {
+      socketCall = value;
+    });
+
+    socket.on("socketCallOn", (value) => {
+      socketCall = value;
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 //? error handler middleware
 app.use(HandleError);
