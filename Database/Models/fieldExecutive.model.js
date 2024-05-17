@@ -17,6 +17,7 @@ const fieldExecutiveSchema = new Schema({
   regNumber: { type: String, required: true, unique: true },
   vehicle: { type: String, required: true },
   present: { type: Boolean },
+  wallet: { type: Number },
   activeStatus: { type: Boolean, default: true },
   created_at: { type: Date, required: true },
   updated_at: { type: Date, required: true },

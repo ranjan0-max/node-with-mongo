@@ -8,7 +8,7 @@ const enquiry_schema = new Schema(
     enquiry_number: { type: String, required: true, unique: true },
     customer_name: { type: String, required: true },
     email: { type: String, required: true },
-    mobile: { type: Number, required: true },
+    mobile: { type: String, required: true },
     total_weight: { type: Number, required: true },
     origin: { type: String, required: true },
     destination: { type: String, required: true },
@@ -41,7 +41,7 @@ const enquiry_schema = new Schema(
     contactPerson: { type: String },
     quotationApprove: { type: Boolean, default: false },
     remark: { type: String },
-    quotation: { type: String },
+    quotation: { type: Number },
     segment: { type: Schema.Types.ObjectId, required: true },
     siteId: { type: Schema.Types.ObjectId, ref: SITE, index: true },
     userId: {

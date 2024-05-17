@@ -8,7 +8,7 @@ const quotation_schema = new Schema({
   enquiryNumber: { type: String, required: true, unique: true },
   customerName: { type: String, required: true },
   customerEmail: { type: String, required: true },
-  mobileNumber: { type: Number, required: true },
+  mobileNumber: { type: String, required: true },
   customerAddress: { type: String },
   validFrom: { type: Date, required: true },
   validTo: { type: Date, required: true },

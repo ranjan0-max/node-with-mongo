@@ -6,7 +6,7 @@ const userSchema = new Schema({
   email_validated: { type: Boolean, default: false },
   password: { type: String, required: true },
   code: { type: String },
-  phoneNumber: { type: Number },
+  phoneNumber: { type: String },
   countryId: { type: String, ref: "Country" },
   siteId: [
     {
@@ -58,6 +58,7 @@ const userSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
   },
+  mappedDestination: { type: String },
 });
 
 const User = model("User", userSchema);

@@ -1,12 +1,10 @@
 const { Schema, model } = require("mongoose");
 
 const BookingLogSchema = new Schema({
+  user: { type: Schema.Types.ObjectId, ref: "User" },
   refNumber: { type: String, required: true },
   status: { type: String }, // WAREHOUSE_IN,
   reason: { type: String },
-  enquiryNumber: { type: String },
-  fmlNumber: { type: String },
-  user: { type: Schema.Types.ObjectId, ref: "User" },
   attemptCount: { type: Number },
   modifierName: { type: String },
   detailDescription: { type: String },

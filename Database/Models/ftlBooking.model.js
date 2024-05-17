@@ -3,12 +3,11 @@ const USER = "User";
 const SITE = "Site";
 const CUSTOMER = "Customer";
 
-const bookingSchema = new Schema(
+const ftlBookingSchema = new Schema(
   {
     bookingNumber: { type: String, required: true, unique: true },
     awbNumber: { type: String, required: true, unique: true },
     enquiryNumber: { type: String },
-    preBookingNumber: { type: String },
     customerEmail: { type: String, required: true },
     customerMobile: { type: String, required: true },
     origin: { type: String, required: true },
@@ -63,5 +62,5 @@ const bookingSchema = new Schema(
   { index: { siteId: 1, userId: 1 } }
 );
 
-const Booking = model("Booking", bookingSchema);
-module.exports = Booking;
+const FtlBooking = model("FtlBooking", ftlBookingSchema);
+module.exports = FtlBooking;

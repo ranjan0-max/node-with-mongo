@@ -2,31 +2,36 @@ const { Schema, model } = require("mongoose");
 
 const customerSchema = new Schema({
   customer_name: { type: String, required: true },
-  code: { type: String, required: true },
-  customer_email: { type: String, required: true },
-  phone: { type: Number, required: true },
+  code: { type: String, required: true, unique: true },
+  customer_email: { type: String, required: true, unique: true },
+  phone: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   logo: { type: String },
   term_code: { type: String },
+  mark: { type: String },
+  customerType: { type: Array, required: true },
 
   //Address Details
-  cotactPersonEmail: { type: String },
-  cotactPersonName: { type: String },
+  contactPersonEmail: { type: String },
+  contactPersonName: { type: String },
   address_type: { type: String },
   address: { type: String, required: true },
   country: { type: String, required: true },
   landMark: { type: String },
   zip_code: { type: String },
+  googleMapAddress: { type: String },
 
   //Vat Details
   vat_no: { type: String, required: true },
-  vat_exempted: { type: String },
+  vatExempted: { type: String },
   exempted_reason: { type: String },
   vat_doc: { type: String },
 
   //Trade Details
   license_no: { type: String, required: true },
   expiry_date: { type: Date },
+  tradeExempted: { type: String },
+  tradeExemptedReason: { type: String },
   trade_doc: { type: String },
 
   // credit limit Mapping
