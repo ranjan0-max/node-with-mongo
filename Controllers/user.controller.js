@@ -189,7 +189,7 @@ const getActiveUser = async (req, res, next) => {
   }
 };
 
-// ------------------- get Active user by their role and site wise -------------------------------
+// ------------------- get Active user by their role and site wise ------------------------------
 
 const getActiveUserBySiteAndRole = async (req, res) => {
   try {
@@ -202,10 +202,16 @@ const getActiveUserBySiteAndRole = async (req, res) => {
     } else if (filter.filterName === "SALEMAN") {
       const saleManId = roles.find((data) => data.role === "SALEMAN");
       filterIdOfUser = saleManId._id;
+    } else if (filter.filterName === "WAREHOUSE_EXECUTIVE") {
+      const wareHouseExecutiveId = roles.find(
+        (data) => data.role === "WAREHOUSE_EXECUTIVE"
+      );
+      filterIdOfUser = wareHouseExecutiveId._id;
     }
     const query = {
       role: { $elemMatch: { $eq: filterIdOfUser } },
       siteId: { $elemMatch: { $eq: filter.siteId } },
+      activeStatus: true,
     };
 
     const users = await DB.findDetails(User, query);
@@ -233,7 +239,8 @@ const getSalesManBySaleManager = async (req, res) => {
     const salesManList = await DB.aggregation(MapSalemanagerToSaleman, [
       {
         $match: {
-          saleManagerId: mongoose.Types.ObjectId(req.params.saleManagerId),
+          saleManagerId: mongoose.Types.ObjectId(req.query.saleManagerId),
+          siteId: mongoose.Types.ObjectId(req.query.siteId),
         },
       },
       {
@@ -332,13 +339,13 @@ const updateUser = async (req, res, next) => {
  */
 const getWareHouseApprovalUser = async (req, res, next) => {
   try {
-    // Find role IDs for "SUPER_ADMIN" and "SITE_ADMIN"
+    // Find role IDs for "WAREHOUSE_MANAGER" and "SUPERVISOR"
     const roles = await Role.find({
-      role: { $in: ["SUPER_ADMIN", "SITE_ADMIN"] },
+      role: { $in: ["WAREHOUSE_MANAGER", "SUPERVISOR"] },
     });
     const roleIds = roles.map((role) => role._id);
 
-    // Find users with role IDs related to the "SUPER_ADMIN" and "SITE_ADMIN" roles
+    // Find users with role IDs related to the "SUPERVISOR" and "SUPERVISOR" roles
     // const approvalUsers = await User.find(
     //   { role: { $in: roleIds } },
     //   { name: 1, email: 1 }
@@ -358,7 +365,7 @@ const getWareHouseApprovalUser = async (req, res, next) => {
     return Response.success(res, {
       data: approvalUsers,
       count: approvalUsers.length,
-      message: "All WareHouse ApprovalUser retrieved successfully",
+      message: "Approval User Found successfully",
     });
   } catch (error) {
     Logger.error(

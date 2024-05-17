@@ -18,6 +18,7 @@ const {
 
 const controllerName = "sales.controller.js";
 const ALL_SEGMENT = "ALL SEGMENT";
+const { handleSocketCallOn } = require("../Controllers/socket.controller");
 
 /////////////////***************************  ENQUIRY FUNCTIONS  ************************////////////////
 
@@ -80,6 +81,7 @@ const createEnquiry = async (request, response, next) => {
       updated_at: DateTime.IST(),
     });
     await DB.create(Enquiry, data);
+
     return Response.success(response, {
       data: [data],
       message: "Enquiry Added !",
@@ -269,37 +271,38 @@ const updateEnquiry = async (request, response, next) => {
 
     const myquery = { enquiry_number: request.params.id };
 
-    const modifierName = await DB.population(User, {
-      queryString: { _id: request.query.auth_user_id },
-      popString: "role",
-      queryExclude: {
-        password: 0,
-        is_deleted: 0,
-        refresh_token: 0,
-        created_at: 0,
-      },
-      popExclude: {
-        updated_at: 0,
-        role_active: 0,
-        __v: 0,
-        created_at: 0,
-      },
-    });
+    // const modifierName = await DB.population(User, {
+    //   queryString: { _id: request.query.auth_user_id },
+    //   popString: "role",
+    //   queryExclude: {
+    //     password: 0,
+    //     is_deleted: 0,
+    //     refresh_token: 0,
+    //     created_at: 0,
+    //   },
+    //   popExclude: {
+    //     updated_at: 0,
+    //     role_active: 0,
+    //     __v: 0,
+    //     created_at: 0,
+    //   },
+    // });
 
-    if (data.enquiry_status) {
-      await makeEnquiryStatusLog({
-        detailDescription:
-          "Enquiry Status SuccessFully updated  to " + data.enquiry_status,
-        enquiryNumber: request.params.id,
-        status: data.enquiry_status,
-        functionName: "createEnquiry",
-        modifierName: modifierName[0].name ?? "ADMIN",
-        created_at: DateTime.IST(),
-        updated_at: DateTime.IST(),
-      });
-    }
+    // if (data.enquiry_status) {
+    //   await makeEnquiryStatusLog({
+    //     detailDescription:
+    //       "Enquiry Status SuccessFully updated  to " + data.enquiry_status,
+    //     enquiryNumber: request.params.id,
+    //     status: data.enquiry_status,
+    //     functionName: "createEnquiry",
+    //     modifierName: modifierName[0].name ?? "ADMIN",
+    //     created_at: DateTime.IST(),
+    //     updated_at: DateTime.IST(),
+    //   });
+    // }
 
     await DB.CustomUpdate(Enquiry, { data, query: myquery });
+
     return Response.success(response, {
       data: [data],
       message: "Enquiry Data Updated",
@@ -324,7 +327,7 @@ const getEnquiryForPriceApproval = async (request, response, next) => {
   try {
     request.query.priceApprove = false;
     request.query.enquiry_status = "PRICEREQUEST";
-    const enquiry = await Enquiry.find(request.query);
+    const enquiry = await DB.findDetails(Enquiry, request.query);
 
     if (enquiry.length) {
       for (let i = 0; i < enquiry.length; i++) {
@@ -422,6 +425,7 @@ const enquiryPriceApproval = async (req, res, next) => {
       message = req.body.priceApprove
         ? "Enquiry Price Approved Successfully"
         : `Enquiry Price Rejected by admin Reason is: ${req.body.remark}`;
+
       return Response.success(res, {
         data: [],
         message: message,
@@ -689,6 +693,7 @@ const updateQuotations = async (request, response, next) => {
       });
     }
     await DB.CustomUpdate(Quotation, { data, query: myquery });
+
     return Response.success(response, {
       data: [data],
       message: "Quotation update",

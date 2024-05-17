@@ -1,13 +1,17 @@
 const Response = require("../Helpers/response.helper");
 const { IST } = require("../Helpers/dateTime.helper");
-
+const Device = require("../Database/Models/Device.model");
 const { generateCustomError } = require("../Helpers/error.helper");
-
 const AuthHelper = require("../Helpers/auth.helper");
 const DB = require("../Helpers/crud.helper");
-
 const User = require("../Database/Models/user.model");
+const Driver = require("../Database/Models/driver.model");
 const Role = require("../Database/Models/role.model");
+const NumberGenrator = require("../Helpers/numberGenerator.helper");
+const { sendOTPMsg91, verifyOTPMsg91 } = require("../Helpers/otp.helper");
+const Logger = require("../Helpers/logger");
+const { handleSocketCallOn } = require("../Controllers/socket.controller");
+const controllerName = "auth.controller.js";
 
 const {
   ACCESS_TOKEN_SECRET,
@@ -184,7 +188,200 @@ const login = async (req, res, next) => {
       },
     });
   } catch (error) {
-    next(error);
+    Logger.error(error.message + "at login function " + controllerName);
+    return Response.error(res, {
+      data: [],
+      message: "Something Went Wrong",
+    });
+  }
+};
+
+/**
+ * @description API For Mobile Login
+ * @param model mongoose User model && Device
+ * @param data string: Request.body
+ * @returns object: { success: boolean, error: boolean || error }
+ */
+
+const mobileLogin = async (req, res, next) => {
+  try {
+    let query = {};
+    if (req.body?.email) query.email = req.body.email;
+    else await generateCustomError("BAD REQUEST", "bad_request", 400);
+
+    const user = await DB.population(User, {
+      queryString: query,
+      popString: "role",
+      popExclude: { updated_at: 0, role_active: 0, __v: 0, created_at: 0 },
+    });
+
+    if (!user.length)
+      await generateCustomError(
+        "Please register and try again !",
+        "user_not_found",
+        401,
+        "clientUnautorized"
+      );
+    if (user[0]?.is_deleted)
+      await generateCustomError("Account Blocked !", "account_blocked", 400);
+
+    await AuthHelper.compareHash(req.body.password, user[0].password);
+    delete user[0].password;
+    delete user[0].is_deleted;
+    delete user[0].refresh_token;
+
+    const accessToken = await AuthHelper.generateToken(
+      {
+        id: user[0].id,
+        role: user[0].role.map((item) => item._id),
+        activeStatus: user[0].activeStatus,
+      },
+      ACCESS_TOKEN_EXPIRY,
+      ACCESS_TOKEN_SECRET
+    );
+
+    // eslint-disable-next-line max-len
+    const refreshToken = await AuthHelper.generateToken(
+      {
+        id: user[0].id,
+        role: user[0].role.map((item) => item._id),
+        activeStatus: user[0].activeStatus,
+      },
+      REFRESH_TOKEN_EXPIRY,
+      REFRESH_TOKEN_SECRET
+    );
+
+    if (user[0].role[0].role === "WAREHOUSE_EXECUTIVE") {
+      const deviceQuery = {
+        deviceId: req.body.deviceId,
+      };
+      // const deviceResponse = await Device.findOne(deviceQuery);
+      const deviceResponse = await DB.readOne(Device, deviceQuery);
+      if (deviceResponse) {
+        if (deviceResponse.mappedUser === user[0].id) {
+          return Response.success(res, {
+            data: {
+              accessToken: accessToken,
+              user: {
+                ...user[0],
+                deviceId: req.body.deviceId,
+                deviceName: deviceResponse.deviceName,
+              },
+              refresh_token: refreshToken,
+              device_token: deviceResponse.device_token,
+              siteId: deviceResponse.siteId,
+              date: IST(),
+            },
+            message: "Logged-In SuccessFully",
+          });
+        } else {
+          // checking the site Id in user siteid array
+          let haveSite = false;
+          user[0].siteId.forEach((site) => {
+            if (site.toString() === deviceResponse.siteId.toString()) {
+              haveSite = true;
+            }
+          });
+
+          if (haveSite) {
+            await DB.updateOne(Device, {
+              query: {
+                deviceName: deviceResponse.deviceName,
+                deviceId: deviceResponse.deviceId,
+              },
+              data: {
+                mappedUser: user[0].id,
+              },
+            });
+
+            return Response.success(res, {
+              data: {
+                accessToken: accessToken,
+                user: {
+                  ...user[0],
+                  deviceId: req.body.deviceId,
+                  deviceName: deviceResponse.deviceName,
+                },
+                refresh_token: refreshToken,
+                device_token: deviceResponse.device_token,
+                siteId: deviceResponse.siteId,
+                date: IST(),
+              },
+              message: "Logged-In SuccessFully",
+            });
+          } else {
+            return Response.badRequest(res, {
+              data: [],
+              message: "User Is From Different Site",
+            });
+          }
+        }
+      } else {
+        const deviceData = {
+          deviceId: req.body.deviceId,
+          siteId: user[0].siteId[0],
+          deviceName: await NumberGenrator.deviceName(),
+          device_token: req.body.token,
+          mappedUser: user[0].id,
+          active: true,
+        };
+
+        await DB.create(Device, deviceData);
+        return Response.success(res, {
+          data: {
+            accessToken: accessToken,
+            user: {
+              ...user[0],
+              deviceId: req.body.deviceId,
+              deviceName: deviceData.deviceName,
+            },
+            refresh_token: refreshToken,
+            device_token: req.body.token,
+            siteId: deviceData.siteId,
+            date: IST(),
+          },
+          message: "New device added and Logged-In SuccessFully",
+        });
+      }
+    } else {
+      await DB.update(User, {
+        query: { _id: user[0].id },
+        data: {
+          device_token: req.body.token,
+          refresh_token: refreshToken,
+          updated_at: IST("date"),
+        },
+      });
+
+      const newKeyName = "id";
+
+      const userData = {
+        ...user[0],
+        [newKeyName]: user[0].userId || user[0].id,
+      };
+
+      return Response.success(res, {
+        data: {
+          accessToken: accessToken,
+          user: { ...userData },
+          refresh_token: refreshToken,
+          device_token: req.body.token,
+          date: IST(),
+        },
+        message: "Logged-In SuccessFully",
+      });
+    }
+  } catch (error) {
+    if (error.code === 11000) {
+      return Response.badRequest(res, {
+        data: [],
+        message: "Device Is Already Mapped With Another User" + error.message,
+      });
+    }
+    return Response.error(res, {
+      data: [],
+      message: error.message,
+    });
   }
 };
 
@@ -238,13 +435,12 @@ const generateTokens = async (req, res, next) => {
     let token = JSON.parse(req.cookies[APP_NAME]);
     token = token?.refreshToken;
 
-    if (!token)
-      await generateCustomError(
-        "Invalid data or data missing !",
-        "bad_request",
-        400,
-        "invalidData"
-      );
+    if (!token) {
+      return Response.unauthorized(res, {
+        data: [],
+        message: "Invalid data or data missing",
+      });
+    }
 
     const verify = await AuthHelper.verifyToken(token, REFRESH_TOKEN_SECRET);
 
@@ -254,13 +450,12 @@ const generateTokens = async (req, res, next) => {
       is_deleted: false,
     });
 
-    if (!user.length)
-      await generateCustomError(
-        "Invalid token or user blocked !",
-        "bad_request",
-        400,
-        "invalidTokenOrUserBlocked"
-      );
+    if (!user.length) {
+      return Response.unauthorized(res, {
+        data: [],
+        message: "Invalid Token Or User Blocked",
+      });
+    }
 
     const userData = {
       id: user[0]._id || user[0].id,
@@ -276,11 +471,18 @@ const generateTokens = async (req, res, next) => {
       ACCESS_TOKEN_SECRET
     );
 
-    if (!accessToken)
-      await generateCustomError("Unable to generate access token !");
+    if (!accessToken) {
+      return Response.badRequest(res, {
+        data: [],
+        message: "Unable to generate access token",
+      });
+    }
     return Response.success(res, { data: [{ accessToken }] });
   } catch (error) {
-    next(error);
+    return Response.error(res, {
+      data: [],
+      message: "Something Went Wrong",
+    });
   }
 };
 /**
@@ -313,6 +515,7 @@ const logout = async (req, res, next) => {
       query: { _id: authUserId },
       data: {
         refresh_token: "",
+        device_token: "",
         active_status: false,
         updated_at: IST("date"),
       },
@@ -326,10 +529,144 @@ const logout = async (req, res, next) => {
   }
 };
 
+const generateOtp = async (phoneNumber) => {
+  try {
+    const dummyNumber = ["+91 11111111", "+91 2222222222", "+91 3333333333"];
+    if (dummyNumber.includes(phoneNumber)) {
+      return "message send";
+    } else {
+      const response = await sendOTPMsg91(phoneNumber);
+      return response;
+    }
+  } catch (error) {
+    Logger.error(error.message + "at generateOtp function " + controllerName);
+    return "Otp Not Send";
+  }
+};
+
+// ----------------------------- get driver info for login --------------------------
+
+const getDriverInfo = async (req, res) => {
+  try {
+    const dummyNumber = ["+91 1111111111", "+91 2222222222", "+91 3333333333"];
+    const phoneNumber = `${req.body.countryPhoneCode} ${req.body.phoneNumber}`;
+    if (dummyNumber.includes(phoneNumber)) {
+      return Response.success(res, {
+        data: { type: 10 },
+        message: "Dummy Driver",
+      });
+    }
+    const driverInfo = await DB.readOne(Driver, { mobile: phoneNumber });
+    if (driverInfo) {
+      if (driverInfo.otpVerified) {
+        return Response.success(res, {
+          data: { type: 13, driverInfo: driverInfo },
+          message: "Driver Phone Number Verifited",
+        });
+      } else {
+        return Response.success(res, {
+          data: { type: 10, driverInfo: driverInfo },
+          message: "Driver Phone Number Not Verifited",
+        });
+      }
+    }
+
+    return Response.badRequest(res, {
+      data: {},
+      message: "Driver Not Registered",
+    });
+  } catch (error) {
+    Logger.error(error.message + "at getDriverInfo function " + controllerName);
+    return Response.badRequest(res, {
+      data: [],
+      message: error.message,
+    });
+  }
+};
+
+// ----------------------------- driver login --------------------------
+
+const driverLoin = async (req, res) => {
+  try {
+    const phoneNumber = `${req.body.countryPhoneCode} ${req.body.phoneNumber}`;
+    console.log(phoneNumber);
+    const driverInfo = await DB.readOne(Driver, { mobile: phoneNumber });
+    if (driverInfo) {
+      if (driverInfo.otpVerified) {
+        if (req.body.password) {
+          await AuthHelper.compareHash(req.body.password, driverInfo.password);
+          return Response.success(res, {
+            data: driverInfo,
+            message: "Driver LogIn Successfully",
+          });
+        } else {
+          return Response.badRequest(res, {
+            data: {},
+            message: "Password Required",
+          });
+        }
+      } else {
+        const response = await generateOtp(phoneNumber);
+        return Response.success(res, {
+          data: response,
+          message: "Otp Send Successfully",
+        });
+      }
+    }
+    return Response.badRequest(res, {
+      data: {},
+      message: "Driver Not Registered",
+    });
+  } catch (error) {
+    Logger.error(error.message + "at verifyOtp function " + controllerName);
+    return Response.badRequest(res, { data: {}, message: error.message });
+  }
+};
+
+// ----------------------------- verify Otp --------------------------
+
+const verifyOtp = async (req, res) => {
+  try {
+    const phoneNumber = `${req.body.countryPhoneCode} ${req.body.phoneNumber}`;
+    const dummyNumber = ["+91 11111111", "+91 2222222222", "+91 3333333333"];
+    console.log("entirng");
+    if (dummyNumber.includes(phoneNumber)) {
+      if (req.body.otp === "1234") {
+        return Response.success(res, {
+          data: {},
+          message: "Driver Otp Verifited",
+        });
+      } else {
+        return Response.badRequest(res, {
+          data: {},
+          message: "Otp Is Not Correct",
+        });
+      }
+    } else {
+      let phone = `${req.body.countryPhoneCode}${req.body.phoneNumber}`;
+      const response = await verifyOTPMsg91(phone, req.body.otp);
+      return Response.success(res, {
+        data: response,
+        message: "Driver Otp Verifited",
+      });
+    }
+  } catch (error) {
+    Logger.error(error.message + "at verifyOtp function " + controllerName);
+    return Response.badRequest(res, {
+      data: {},
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   logout,
   generateTokens,
   getUser,
+  mobileLogin,
+  getDriverInfo,
+  driverLoin,
+  verifyOtp,
 };
