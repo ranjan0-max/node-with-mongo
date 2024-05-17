@@ -2,128 +2,154 @@ const FmlStatusesLog = require("../Database/Models/FirstMilePickupStatus.model")
 const BookingLog = require("../Database/Models/bookingLog.model");
 const EnquiryStatusesLog = require("../Database/Models/Sales/enquiryLogs.model");
 const QuotationLog = require("../Database/Models/Sales/quotationLog");
+const JobLog = require("../Database/Models/jobLog.model");
+const LmdLog = require("../Database/Models/lmdLog.modal");
 const DB = require("./crud.helper");
+const Logger = require("../Helpers/logger");
+const fileName = "dbLogHelper.js";
+
+// -=-=-=-=-=-=-=-=-=-=- booking logs -=-=-=-=-=-=-=-=-=-=-=-=-
 
 const makeBookingLog = async (data) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const bookingLog = await DB.create(BookingLog, data);
-      resolve(bookingLog);
-    } catch (error) {
-      reject(error);
-    }
-  });
+  try {
+    await DB.create(BookingLog, data);
+    return true;
+  } catch (error) {
+    Logger.error(error.message + "at makeBookingLog function " + fileName);
+  }
 };
 
 const readBookingLog = async (query) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const bookingLogs = await DB.findDetails(BookingLog, query);
-      resolve(bookingLogs);
-    } catch (error) {
-      reject(error);
-    }
-  });
+  try {
+    const bookingLogs = await DB.findDetails(BookingLog, query);
+    return bookingLogs;
+  } catch (error) {
+    Logger.error(error.message + "at readBookingLog function " + fileName);
+  }
 };
 
-/**
- * @param {object} data
- * @param {objectId} data.fmlBookingNumber created FirstMilePickup  preBookingNo
- * @param {objectId} data.modifierName log created by
- * @param {Date} data.created_at Date of creation
- * @returns generated log/error
- */
+// -=-=-=-=-=-=-=-=-=-=- end of booking logs -=-=-=-=-=-=-=-=-=-=-=-=-
+
+// -=-=-=-=-=-=-=-=-=-=- fml logs -=-=-=-=-=-=-=-=-=-=-=-=-
 
 const makeFMLStatuesLog = async (data) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const fmlStatuesLog = await DB.create(FmlStatusesLog, data);
-      resolve(fmlStatuesLog);
-    } catch (error) {
-      reject(error);
-    }
-  });
+  try {
+    await DB.create(FmlStatusesLog, data);
+    return true;
+  } catch (error) {
+    Logger.error(error.message + "at makeFMLStatuesLog function " + fileName);
+  }
 };
-
-/*
- * @param {object} query query to fetch log
- * @param {object} sort sorting object
- * @returns logs
- */
 
 const readFMlStatusesLog = async (query) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const fmlLogs = await DB.population(FmlStatusesLog, {
-        queryString: query,
-        popString: "fieldExecutive",
-      });
+  try {
+    const fmlLogs = await DB.population(FmlStatusesLog, {
+      queryString: query,
+      popString: "fieldExecutive",
+    });
 
-      resolve(fmlLogs);
-    } catch (error) {
-      reject(error);
-    }
-  });
+    return fmlLogs;
+  } catch (error) {
+    Logger.error(error.message + "at readFMlStatusesLog function " + fileName);
+  }
 };
 
-/**
- * @param {object} data
- * @param {objectId} data.enquirynumber  created EnquiryLog  enquirynumber
- * @param {objectId} data.modifierName log created by
- * @param {Date} data.created_at Date of creation
- * @returns generated log/error
- */
+// -=-=-=-=-=-=-=-=-=-=- end fml logs -=-=-=-=-=-=-=-=-=-=-=-=-
+
+// -=-=-=-=-=-=-=-=-=-=- enquiry logs -=-=-=-=-=-=-=-=-=-=-=-=-
 
 const makeEnquiryStatusLog = async (data) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const enquiryStatuesLog = await DB.create(EnquiryStatusesLog, data);
-      resolve(enquiryStatuesLog);
-    } catch (error) {
-      reject(error);
-    }
-  });
+  try {
+    const enquiryStatuesLog = await DB.create(EnquiryStatusesLog, data);
+    return enquiryStatuesLog;
+  } catch (error) {
+    Logger.error(
+      error.message + "at makeEnquiryStatusLog function " + fileName
+    );
+  }
 };
-
-/*
- * @param {object} query query to fetch log
- * @param {object} sort sorting object
- * @returns logs
- */
 
 const readEnquiryStatusesLog = async (query) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const enquiryLogs = await DB.findDetails(EnquiryStatusesLog, query);
-      resolve(enquiryLogs);
-    } catch (error) {
-      reject(error);
-    }
-  });
+  try {
+    const enquiryLogs = await DB.findDetails(EnquiryStatusesLog, query);
+    return enquiryLogs;
+  } catch (error) {
+    Logger.error(
+      error.message + "at readEnquiryStatusesLog function " + fileName
+    );
+  }
 };
 
+// -=-=-=-=-=-=-=-=-=-=- end enquiry logs -=-=-=-=-=-=-=-=-=-=-=-=-
+
+// -=-=-=-=-=-=-=-=-=-=- quotation logs -=-=-=-=-=-=-=-=-=-=-=-=-
+
 const makeQuoationLog = async (data) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const quotationLog = await DB.create(QuotationLog, data);
-      resolve(quotationLog);
-    } catch (error) {
-      reject(error);
-    }
-  });
+  try {
+    await DB.create(QuotationLog, data);
+    return true;
+  } catch (error) {
+    Logger.error(error.message + "at makeQuoationLog function " + fileName);
+  }
 };
 
 const readQuotationLog = async (query) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const quotationLogs = await DB.findDetails(QuotationLog, query);
-      resolve(quotationLogs);
-    } catch (error) {
-      reject(error);
-    }
-  });
+  try {
+    const quotationLogs = await DB.findDetails(QuotationLog, query);
+    return quotationLogs;
+  } catch (error) {
+    Logger.error(error.message + "at readQuotationLog function " + fileName);
+  }
 };
 
+// -=-=-=-=-=-=-=-=-=-=- end quotation logs -=-=-=-=-=-=-=-=-=-=-=-=-
+
+// ---------------------------- job log ---------------------------------
+
+const makeJobLog = async (data) => {
+  try {
+    await DB.create(JobLog, data);
+    return true;
+  } catch (error) {
+    Logger.error(error.message + "at makeJobLog function " + fileName);
+  }
+};
+
+const readJobLog = async (query) => {
+  try {
+    const jobLog = await DB.findDetails(JobLog, query);
+    return jobLog;
+  } catch (error) {
+    Logger.error(error.message + "at readJobLog function " + fileName);
+  }
+};
+
+// -=-=-=-=-=-=-=-=-=-=- end job logs -=-=-=-=-=-=-=-=-=-=-=-=-
+
+// -=-=-=-=-=-=-=-=-=-=- lmd logs -=-=-=-=-=-=-=-=-=-=-=-=-
+
+const makeLmdLog = async (data) => {
+  try {
+    await DB.create(LmdLog, data);
+    return true;
+  } catch (error) {
+    Logger.error(error.message + "at makeLmdLog function " + fileName);
+  }
+};
+
+const readLmdLog = async (query) => {
+  try {
+    const jobLog = await DB.population(LmdLog, {
+      queryString: query,
+      popString: "fieldExecutive",
+    });
+    return jobLog;
+  } catch (error) {
+    Logger.error(error.message + "at readLmdLog function " + fileName);
+  }
+};
+
+// -=-=-=-=-=-=-=-=-=-=- end lmd logs -=-=-=-=-=-=-=-=-=-=-=-=-
 module.exports = {
   makeFMLStatuesLog,
   readFMlStatusesLog,
@@ -133,4 +159,8 @@ module.exports = {
   readBookingLog,
   makeQuoationLog,
   readQuotationLog,
+  makeJobLog,
+  readJobLog,
+  makeLmdLog,
+  readLmdLog,
 };

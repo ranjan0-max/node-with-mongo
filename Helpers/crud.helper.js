@@ -75,6 +75,19 @@ async function create(Model, data) {
   });
 }
 
+// -=-=-=-=-=-=-=-=- create many queries in one time -=-=-=-=-=-=-=-=-=-=-
+
+async function createMany(Model, dataArray) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const createdDocuments = await Model.insertMany(dataArray);
+      resolve(createdDocuments);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
 /**
  * @description reads data based on query and model
  * @param Model mongoose model
@@ -144,6 +157,17 @@ async function CustomUpdate(Model, data) {
       await Model.updateOne(data.query, {
         $set: data.data,
       });
+      resolve(true);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+async function updateOne(Model, data) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await Model.updateOne(data.query, data.data);
       resolve(true);
     } catch (error) {
       reject(error);
@@ -231,6 +255,37 @@ async function findDetails(Model, query) {
   });
 }
 
+async function findDetailsWithSelectedField(Model, query) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const data = await Model.find(query.conditions || {}).select(
+        query.projection || {}
+      );
+
+      resolve(data);
+    } catch (error) {
+      const newErr = new Error("Unable to get details");
+      newErr.error = error;
+      newErr.code = 401;
+      reject(newErr);
+    }
+  });
+}
+
+async function findLastRecord(Model, query = {}) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const lastRecord = await Model.findOne(query).sort({ _id: -1 });
+      resolve(lastRecord);
+    } catch (error) {
+      const newErr = new Error("Unable to get the last record");
+      newErr.error = error;
+      newErr.code = 401;
+      reject(newErr);
+    }
+  });
+}
+
 module.exports = {
   isUnique,
   getCount,
@@ -244,4 +299,8 @@ module.exports = {
   population,
   findDetails,
   CustomUpdate,
+  updateOne,
+  findDetailsWithSelectedField,
+  createMany,
+  findLastRecord,
 };

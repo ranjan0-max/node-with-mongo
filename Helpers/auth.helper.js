@@ -49,14 +49,14 @@ async function verifyToken(token, secret) {
   return new Promise(async (resolve, reject) => {
     try {
       let data = jwt.verify(token, secret);
-      if (data?.expired)
+      if (data?.expired) {
         await generateCustomError(
           "token expired !",
           "auth_token_error",
           401,
           "authTokenExpired"
         );
-
+      }
       resolve(data);
     } catch (error) {
       reject(error);
