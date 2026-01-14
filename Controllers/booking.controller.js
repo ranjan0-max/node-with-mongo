@@ -494,6 +494,68 @@ const bookingForQcDataForMobile = async (req, res) => {
     }
 };
 
+const getFirstMilePickupBooking = async (req, res) => {
+    try {
+        delete req.query.auth_user_id;
+        delete req.query.user_role;
+
+        const { skip, limit } = pagination(req);
+
+        const populateOptions = [
+            { path: 'customerName', select: 'customer_name customer_email' },
+            { path: 'shipper', select: 'customer_name customer_email' },
+            { path: 'fieldExecutive', select: 'name' },
+            { path: 'madeBy', select: 'name' },
+            { path: 'product', select: 'cargoDescription' },
+            { path: 'logs', match: { status: 'CANCELLED' }, select: 'reason' }
+        ];
+
+        let query = { ...req.query };
+
+        if (query.search) {
+            const searchRegex = new RegExp(query.search.trim(), 'i');
+
+            query['$or'] = [{ email: searchRegex }, { preBookingNo: searchRegex }, { status: searchRegex }];
+
+            delete query.search;
+        }
+
+        if (query.filter) {
+            query.status = query.filter;
+            delete query.filter;
+        }
+
+        const fmlList = await DB.findDetails(FirstMilePickup, query, {}, { skip, limit, sort: { created_at: -1 } }, populateOptions);
+
+        if (fmlList.length > 0) {
+            await Promise.all(
+                fmlList.map(async (entry) => {
+                    if ((Array.isArray(entry?.collectionPicture) && entry.collectionPicture.length > 0) || entry?.collectionPicture) {
+                        let images = typeof entry.collectionPicture === 'string' ? [entry.collectionPicture] : entry.collectionPicture;
+                        try {
+                            entry.collectionPicture = await getFmlCollectionPictureWithFileName(images);
+                        } catch (error) {
+                            entry.collectionPictureUrl = [];
+                        }
+                    }
+                })
+            );
+        }
+
+        return Response.success(res, {
+            data: fmlList,
+            count: await DB.getCount(FirstMilePickup, req.query),
+            message: 'FirstMilePickup Booking Found'
+        });
+    } catch (error) {
+        Logger.error('Error at getFirstMilePickupBooking function ' + controllerName, error);
+        return Response.badRequest(res, {
+            data: [],
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     createBooking,
     getAllBooking,
